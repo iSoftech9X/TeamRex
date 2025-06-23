@@ -2,13 +2,10 @@ name: Deploy to ECR
 
 on:
   push:
-    branches:
-      - "master"
-    paths:
-      - "**"
+    branches: [master]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +20,10 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Log in to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Java app
+        run: mvn clean install
 
       - name: Build, tag, and push Docker image
         env:
