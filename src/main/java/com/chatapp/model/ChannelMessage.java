@@ -16,10 +16,51 @@ public class ChannelMessage {
     private String channelId;
     private String senderId;
     private String content;
-
+    private MessageStatus status = MessageStatus.SENT;
+	private Set<String> deliveredTo = new HashSet<>();
+    private Set<String> seenBy = new HashSet<>();
+    private boolean edited = false;
+    private boolean deleted = false;
+    private String statusinfo = "SENT"; // SENT, DELIVERED, SEEN
     private LocalDateTime editedAt;
+    private boolean hasAttachment;
+    private String attachmentUrl;
+    private String attachmentName;
+    private String attachmentType;
 
-    public LocalDateTime getEditedAt() {
+    public boolean isHasAttachment() {
+		return hasAttachment;
+	}
+
+	public void setHasAttachment(boolean hasAttachment) {
+		this.hasAttachment = hasAttachment;
+	}
+
+	public String getAttachmentUrl() {
+		return attachmentUrl;
+	}
+
+	public void setAttachmentUrl(String attachmentUrl) {
+		this.attachmentUrl = attachmentUrl;
+	}
+
+	public String getAttachmentName() {
+		return attachmentName;
+	}
+
+	public void setAttachmentName(String attachmentName) {
+		this.attachmentName = attachmentName;
+	}
+
+	public String getAttachmentType() {
+		return attachmentType;
+	}
+
+	public void setAttachmentType(String attachmentType) {
+		this.attachmentType = attachmentType;
+	}
+
+	public LocalDateTime getEditedAt() {
 		return editedAt;
 	}
 
@@ -27,11 +68,7 @@ public class ChannelMessage {
 		this.editedAt = editedAt;
 	}
 
-	private MessageStatus status = MessageStatus.SENT;
-
-    private boolean edited = false;
-    private boolean deleted = false;
-    private String statusinfo = "SENT"; // SENT, DELIVERED, SEEN
+	
     public String getStatusinfo() {
 		return statusinfo;
 	}
@@ -56,11 +93,6 @@ public class ChannelMessage {
 		this.seenBy = seenBy;
 	}
 
-	private Set<String> deliveredTo = new HashSet<>();
-    private Set<String> seenBy = new HashSet<>();
-    
-    
-    // Getters and Setters
     public String getId() {
         return id;
     }

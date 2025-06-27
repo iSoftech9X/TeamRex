@@ -1,0 +1,178 @@
+ html body {
+     margin: 0;
+     padding: 0;
+     font-family: sans-serif;
+     list-style: none;
+     height: 100%;
+     font-size: 15px;
+     margin-top: 0;
+ }
+
+ ul {
+    padding-left: 0;
+ }
+
+ li {
+    list-style: none;
+}
+
+i {
+    font-size: 16px;
+    padding: 5px;
+    color: #240944;
+}
+
+a {
+    text-decoration: none;
+}
+
+ .Name {
+     font-size: 10px;
+     color: white;
+     text-align: center;
+     text-decoration: none;
+
+ }
+
+ .icon {
+     color: white;
+     text-align: center;
+     cursor: pointer;
+     font-size: 30px;
+ }
+
+ .Menu {
+     position: relative;
+     background-color: #240944;
+     width: 10%;
+     height: 100vh;
+     text-align: center;
+ }
+
+ .Menu>a>div>i {
+     color: white !important;
+ }
+
+ /* meeting */
+
+ #Meeting {
+    display: none;
+}
+
+#Meeting:target {
+    display: block;
+    
+}
+#Meeting-form {
+    display: none;
+}
+#Meeting-form:target {
+    display: block;
+ 
+}
+ 
+
+ /* teams */
+
+ #Teams {
+     display: none;
+ }
+
+ #Teams:target {
+     display: block;
+     margin-right: 60%;
+     margin-left: 4%;
+     width: 400px;
+
+
+ }
+
+ #Team-forms {
+     display: none;
+ }
+
+ .d-none{
+    display: none;
+ }
+ 
+ .chat-label {
+    padding: 10px;
+    cursor: pointer;
+ }
+ .float-left {
+    float: left;
+ }
+ .float-right {
+    float: right;
+ }
+
+ #Team-forms:target {
+     display: block;
+     margin-right: 60%;
+     margin-left: 4%;
+     width: 400px;
+ }
+
+/* chats */
+
+#chat-box {
+    display: none;
+}
+#chat-box:target {
+    display: block;
+}
+
+
+
+
+
+ #Allan-Chat {
+     height: 100vh;
+     width: auto;
+     margin-bottom: 0px;
+     padding-bottom: 0px;
+ }
+
+ #chat-container {
+    height: 100vh;
+    display: grid;
+    border: 0px solid #240944;
+ }
+
+.profile-pic{
+    height: 50px;
+    width: auto;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+ #chat-forms {
+     display: flow-root;
+ }
+
+ .action-icons {
+    padding: 18px;
+    width: 50px;
+    cursor: pointer;
+    background-color: azure;
+    margin-left: 10px;
+    float: right;
+ }
+.tabs li {
+    margin: 0 10px;
+    border-bottom: 3px solid #000;
+}
+.message {
+    width: 50%;
+    height: 100px;
+    background-color: whitesmoke;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 1px 11px 0 rgb(224, 224, 242);
+}
+
+
+
+/* Show content when the target tab is clicked */
+#chats:target, #files:target, #organization:target, #menu3:target {
+    display: block;
+}

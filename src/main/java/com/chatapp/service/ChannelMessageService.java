@@ -16,8 +16,10 @@ public class ChannelMessageService {
     private ChannelMessageRepository channelMessageRepository;
 
     public ChannelMessage sendMessage(ChannelMessage message) {
+    	message.setEditedAt(LocalDateTime.now());
         return channelMessageRepository.save(message);
     }
+
 
     public List<ChannelMessage> getMessagesByChannelId(String channelId) {
         return channelMessageRepository.findByChannelId(channelId);
