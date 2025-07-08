@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service 
@@ -29,6 +30,17 @@ public class UserService {
 
     public Optional<User> login(LoginRequest request) {
         return userRepository.findByEmail(request.getEmail())
-                .filter(user -> user.getPassword().equals(request.getPassword()));
+            .filter(user -> user.getPassword().equals(request.getPassword()))
+            .map(user -> {
+                user.setStatus("Online");
+                userRepository.save(user);
+                return user;
+            });
     }
+
+    public List<User> searchUsers(String keyword) {
+        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword, keyword);
+    }
+
+
 }

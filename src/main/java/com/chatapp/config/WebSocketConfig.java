@@ -7,18 +7,20 @@ import org.springframework.web.socket.config.annotation.*;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Client connects here (e.g., via SockJS)
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws")
+                .setAllowedOrigins("http://localhost:5173")
+                .withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Broker (server) will send messages with these prefixes
-        registry.enableSimpleBroker("/topic");
-        // Client sends messages with this prefix
+        registry.enableSimpleBroker(
+            "/topic", // For public channels
+            "/queue"  // For private messages
+        );
         registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user");
     }
 }

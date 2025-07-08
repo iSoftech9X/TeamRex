@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -32,4 +33,10 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUsers(@RequestParam("q") String query) {
+        List<User> users = userService.searchUsers(query);
+        return ResponseEntity.ok(users); 
+    }
+
 }
