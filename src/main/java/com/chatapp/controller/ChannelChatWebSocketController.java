@@ -20,12 +20,13 @@ public class ChannelChatWebSocketController {
     @Autowired
     private ChannelMessageService channelMessageService;
 
+   
     @MessageMapping("/channel/{channelId}/send")
     public void sendChannelMessage(@DestinationVariable String channelId,
                                    ChannelMessage message) {
-        // Save to DB
+        
         ChannelMessage saved = channelMessageService.sendMessage(message);
-        // Broadcast to subscribers
+        
         messagingTemplate.convertAndSend("/topic/channel/" + channelId, saved);
     }
     @MessageMapping("/channel/{channelId}/delivered")

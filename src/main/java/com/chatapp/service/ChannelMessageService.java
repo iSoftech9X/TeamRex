@@ -61,15 +61,26 @@ public class ChannelMessageService {
             channelMessageRepository.save(message);
         }
     }
-    public ChannelMessage editMessage(String messageId, String newContent) {
-        ChannelMessage msg = channelMessageRepository.findById(messageId).orElse(null);
-        if (msg != null && !msg.isDeleted()) {
-            msg.setContent(newContent);
-            msg.setEditedAt(LocalDateTime.now());
-            channelMessageRepository.save(msg);
-        }
-        return msg;
+   public ChannelMessage editMessage(String messageId, String newContent) {
+    ChannelMessage msg = channelMessageRepository.findById(messageId)
+            .orElseThrow(() -> new IllegalArgumentException("Message not found with ID: " + messageId));
+
+    if (msg.isDeleted()) {
+        throw new IllegalStateException("Cannot edit a message that has been deleted.");
     }
+
+    if (msg.getEditedAt() != null) {
+        throw new IllegalStateException("This message has already been edited once and cannot be edited again.");
+    }
+
+    msg.setContent(newContent);
+    msg.setEditedAt(LocalDateTime.now());
+
+    return channelMessageRepository.save(msg);
+}
+
+
+
 
     public void softDeleteMessage(String messageId) {
         ChannelMessage msg = channelMessageRepository.findById(messageId).orElse(null);

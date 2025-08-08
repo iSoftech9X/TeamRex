@@ -4,6 +4,8 @@ import com.chatapp.model.ChatMessage;
 import com.chatapp.repository.ChatMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,67 +14,85 @@ import java.util.Optional;
 @Service
 public class ChatService {
 
-    @Autowired
-    private ChatMessageRepository chatMessageRepository; 
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
-    public ChatMessage sendMessage(ChatMessage message) {
+    @Autowired
+    private ChatMessageRepository chatMessageRepository;
+
+    public ChatMessage createMessage(ChatMessage message) {
         message.setTimestamp(LocalDateTime.now());
         return chatMessageRepository.save(message);
     }
 
-    public List<ChatMessage> getMessagesBetweenUsers(String senderId, String receiverId) {
+    public List<ChatMessage> findMessagesBetweenUsers(String senderId, String receiverId) {
         return chatMessageRepository.findBySenderIdAndReceiverId(senderId, receiverId);
     }
 
-    public Optional<ChatMessage> getMessageById(String id) {
+    public Optional<ChatMessage> findMessageById(String id) {
         return chatMessageRepository.findById(id);
     }
 
-    public ChatMessage updateMessage(ChatMessage updatedMessage) {
+    public ChatMessage saveOrUpdateMessage(ChatMessage updatedMessage) {
         return chatMessageRepository.save(updatedMessage);
     }
 
-    public void deleteMessage(String id) {
-        Optional<ChatMessage> messageOpt = chatMessageRepository.findById(id);
-        messageOpt.ifPresent(message -> {
-            message.setDeleted(true); // Soft delete
-            chatMessageRepository.save(message);
+    public void softDeleteMessageById(String messageId) {
+        chatMessageRepository.findById(messageId).ifPresent(message -> {
+            if (!message.isDeleted()) {
+                message.setDeleted(true);
+                chatMessageRepository.save(message);
+            } else {
+                logger.info("Message {} already soft deleted", messageId);
+            }
         });
     }
 
     public void markAsDelivered(String messageId, String userId) {
-        ChatMessage message = chatMessageRepository.findById(messageId).orElse(null);
-        if (message != null && !message.getDeliveredTo().contains(userId)) {
-            message.getDeliveredTo().add(userId);
-            message.setStatusinfo("DELIVERED");
-            chatMessageRepository.save(message);
-        }
+        chatMessageRepository.findById(messageId).ifPresentOrElse(message -> {
+            if (!message.getDeliveredTo().contains(userId)) {
+                message.getDeliveredTo().add(userId);
+                message.setStatusinfo("DELIVERED");
+                chatMessageRepository.save(message);
+            } else {
+                logger.info("User {} has already marked message {} as delivered", userId, messageId);
+            }
+        }, () -> logger.warn("Message not found for markAsDelivered: {}", messageId));
     }
 
     public void markAsSeen(String messageId, String userId) {
-        ChatMessage message = chatMessageRepository.findById(messageId).orElse(null);
-        if (message != null && !message.getSeenBy().contains(userId)) {
-            message.getSeenBy().add(userId);
-            message.setStatusinfo("SEEN");
-            chatMessageRepository.save(message);
-        }
+        chatMessageRepository.findById(messageId).ifPresentOrElse(message -> {
+            if (!message.getSeenBy().contains(userId)) {
+                message.getSeenBy().add(userId);
+                message.setStatusinfo("SEEN");
+                chatMessageRepository.save(message);
+            } else {
+                logger.info("User {} has already marked message {} as seen", userId, messageId);
+            }
+        }, () -> logger.warn("Message not found for markAsSeen: {}", messageId));
     }
 
-    public ChatMessage editMessage(String messageId, String newContent) {
-        ChatMessage msg = chatMessageRepository.findById(messageId).orElse(null);
-        if (msg != null && !msg.isDeleted()) {
+  public ChatMessage editMessage(String messageId, String newContent) {
+    return chatMessageRepository.findById(messageId)
+        .map(msg -> {
+            if (msg.isDeleted()) {
+                logger.warn("Attempt to edit deleted message with ID: {}", messageId);
+                throw new IllegalStateException("Cannot edit a deleted message.");
+            }
+
+            if (msg.getEditedAt() != null) {
+                logger.warn("Message with ID {} has already been edited.", messageId);
+                throw new IllegalStateException("Message has already been edited.");
+            }
+
             msg.setContent(newContent);
             msg.setEditedAt(LocalDateTime.now());
-            chatMessageRepository.save(msg);
-        }
-        return msg;
-    }
+            return chatMessageRepository.save(msg);
+        })
+        .orElseThrow(() -> {
+            logger.warn("Message not found with ID: {}", messageId);
+            return new IllegalArgumentException("Message not found.");
+        });
+}
 
-    public void softDeleteMessage(String messageId) {
-        ChatMessage msg = chatMessageRepository.findById(messageId).orElse(null);
-        if (msg != null) {
-            msg.setDeleted(true);
-            chatMessageRepository.save(msg);
-        }
-    }
+
 }

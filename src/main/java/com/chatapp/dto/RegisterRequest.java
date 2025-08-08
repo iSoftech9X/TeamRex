@@ -4,7 +4,14 @@ public class RegisterRequest {
     private String username;
     private String email;
     private String password;
-    private String role; // optional field
+    private String role;
+    private String timezone; 
+	public String getTimezone() {
+		return timezone;
+	}
+	public void setTimezone(String timezone) {
+		this.timezone = timezone;
+	}
 	public String getUsername() {
 		return username;
 	}

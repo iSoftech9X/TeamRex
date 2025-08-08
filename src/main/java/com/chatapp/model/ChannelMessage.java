@@ -27,6 +27,42 @@ public class ChannelMessage {
     private String attachmentUrl;
     private String attachmentName;
     private String attachmentType;
+    private String senderName;
+    private String senderAvatar;
+    public String getSenderName() {
+		return senderName;
+	}
+
+	public void setSenderName(String senderName) {
+		this.senderName = senderName;
+	}
+
+	public String getSenderAvatar() {
+		return senderAvatar;
+	}
+
+	public void setSenderAvatar(String senderAvatar) {
+		this.senderAvatar = senderAvatar;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public LocalDateTime getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(LocalDateTime timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	private String type; // e.g. "text"
+    private LocalDateTime timestamp;
 
     public boolean isHasAttachment() {
 		return hasAttachment;
