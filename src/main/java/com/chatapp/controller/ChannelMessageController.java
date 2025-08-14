@@ -20,7 +20,7 @@ public class ChannelMessageController {
     public ChannelMessage sendMessage(@RequestBody ChannelMessage message) {
         return channelMessageService.sendMessage(message);
     }
-
+ 
     // Get all messages of a channel
     @GetMapping("/{channelId}")
     public List<ChannelMessage> getMessages(@PathVariable String channelId) {

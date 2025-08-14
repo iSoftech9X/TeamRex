@@ -14,7 +14,7 @@ import java.util.Optional;
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "*")
 public class ChatController {
-	@Autowired
+	@Autowired 
 	private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
