@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,8 +46,23 @@ public class AuthController {
         );
 
         User user = userRepo.findByEmail(request.getEmail()).orElseThrow();
+
+       
+        user.setStatus("Online");
+        userRepo.save(user);
+
         String token = jwtUtil.generateToken(user);
-        return new AuthResponse(token);
+
+        return new AuthResponse(
+            token,
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getRole().toString(),  
+            user.getTimezone(),
+            user.getStatus(),
+            user.getCreatedAt().toString()
+        );
     }
 
     @GetMapping("/search")
@@ -56,5 +70,14 @@ public class AuthController {
         List<User> users = userService.searchUsers(query);
         return ResponseEntity.ok(users); 
     }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestParam String email) {
+        User user = userRepo.findByEmail(email).orElseThrow();
+        user.setStatus("Offline");
+        userRepo.save(user);
+        return ResponseEntity.ok("User logged out successfully.");
+    }
+
 
 }

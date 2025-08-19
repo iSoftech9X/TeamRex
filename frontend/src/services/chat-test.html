@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chat WebSocket Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.1.0/umd/stomp.min.js"></script>
+</head>
+<body>
+  <h2>WebSocket Chat Test</h2>
+
+  <label>Your User ID:</label>
+  <input type="text" id="userId" placeholder="68a31a035a251bff70b29f18" />
+  <br><br>
+
+  <label>Receiver User ID:</label>
+  <input type="text" id="receiverId" placeholder="68a2bb46c76f950ff7fe9d0c" />
+  <br><br>
+
+  <label>Message:</label>
+  <input type="text" id="message" placeholder="Hello" />
+  <button onclick="sendMessage()">Send</button>
+
+  <h3>Messages:</h3>
+  <ul id="messages"></ul>
+
+  <script>
+    let stompClient = null;
+    let userId = '';
+
+    function connect() {
+      userId = document.getElementById('userId').value.trim();
+      if (!userId) {
+        alert("Enter your User ID first!");
+        return;
+      }
+
+      const socket = new SockJS('http://localhost:8080/ws');
+      stompClient = Stomp.Stomp.over(socket);
+
+      stompClient.connect({}, function(frame) {
+        console.log('Connected: ' + frame);
+
+        // Subscribe to receive messages for this user
+        stompClient.subscribe('/user/' + userId + '/queue/messages', function(msg) {
+          const message = JSON.parse(msg.body);
+          const li = document.createElement('li');
+          li.textContent = `From ${message.senderId}: ${message.content}`;
+          document.getElementById('messages').appendChild(li);
+        });
+      });
+    }
+
+    function sendMessage() {
+      const receiverId = document.getElementById('receiverId').value.trim();
+      const content = document.getElementById('message').value.trim();
+      if (!receiverId || !content) {
+        alert("Enter receiver ID and message!");
+        return;
+      }
+
+      const message = {
+        senderId: userId,
+        receiverId: receiverId,
+        content: content,
+        timestamp: new Date().toISOString()
+      };
+
+      stompClient.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify(message)
+      });
+
+      // Optionally display sent message locally
+      const li = document.createElement('li');
+      li.textContent = `To ${receiverId}: ${content}`;
+      document.getElementById('messages').appendChild(li);
+
+      document.getElementById('message').value = '';
+    }
+
+    // Connect automatically when page loads
+    window.onload = connect;
+  </script>
+</body>
+</html>

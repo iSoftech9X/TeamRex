@@ -11,8 +11,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 @Configuration
@@ -20,32 +18,40 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-	@Autowired 
-	private JwtAuthenticationFilter jwtFilter;
-	  @Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-	    http.csrf(csrf -> csrf.disable())
-	        .authorizeHttpRequests(auth -> auth 
-	            .requestMatchers("/api/auth/**").permitAll()
-	            .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
-	            .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-	            .requestMatchers("/api/itadmin/**").hasAuthority("IT_ADMIN")
-	            .anyRequest().authenticated()
-	        )
-	        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    @Autowired 
+    private JwtAuthenticationFilter jwtFilter;
 
-	    return http.build();
-	}
-	  @Bean
-	    public PasswordEncoder passwordEncoder() {
-	        return new BCryptPasswordEncoder();
-	    }
+    @Autowired
+    private CustomAuthHandlers customAuthHandlers; 
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth 
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/itadmin/**").hasAuthority("IT_ADMIN")
+                .anyRequest().authenticated()
+            )
+           
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(customAuthHandlers) 
+                .accessDeniedHandler(customAuthHandlers)      
+            )
+          
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-	    @Bean
-	    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-	        return config.getAuthenticationManager();
-	    }
+        return http.build();
+    }
 
+    @Bean 
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 }
- 

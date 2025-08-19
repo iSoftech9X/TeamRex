@@ -20,6 +20,7 @@ public class ChatMessage {
     private List<String> deliveredTo;
     private List<String> seenBy;
     private String statusinfo; // SENT, DELIVERED, SEEN
+	
 	public String getId() {
 		return id;
 	}
