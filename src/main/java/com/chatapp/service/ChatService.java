@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,8 +26,18 @@ public class ChatService {
     }
 
     public List<ChatMessage> findMessagesBetweenUsers(String senderId, String receiverId) {
-        return chatMessageRepository.findBySenderIdAndReceiverId(senderId, receiverId);
+        List<ChatMessage> messages =
+            chatMessageRepository.findBySenderIdAndReceiverIdOrSenderIdAndReceiverId(
+                senderId, receiverId,
+                receiverId, senderId 
+            );
+
+        // Sort by timestamp (oldest → newest)
+        messages.sort(Comparator.comparing(ChatMessage::getTimestamp));
+
+        return messages;
     }
+
 
     public Optional<ChatMessage> findMessageById(String id) {
         return chatMessageRepository.findById(id);
