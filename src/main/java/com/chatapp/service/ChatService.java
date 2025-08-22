@@ -82,28 +82,41 @@ public class ChatService {
         }, () -> logger.warn("Message not found for markAsSeen: {}", messageId));
     }
 
-  public ChatMessage editMessage(String messageId, String newContent) {
-    return chatMessageRepository.findById(messageId)
-        .map(msg -> {
-            if (msg.isDeleted()) {
-                logger.warn("Attempt to edit deleted message with ID: {}", messageId);
-                throw new IllegalStateException("Cannot edit a deleted message.");
-            }
+    public ChatMessage editMessage(String messageId, String newContent, String senderId) {
+        return chatMessageRepository.findById(messageId)
+            .map(msg -> {
+                if (msg.isDeleted()) {
+                    throw new IllegalStateException("Cannot edit a deleted message.");
+                }
 
-            if (msg.getEditedAt() != null) {
-                logger.warn("Message with ID {} has already been edited.", messageId);
-                throw new IllegalStateException("Message has already been edited.");
-            }
+                if (!msg.getSenderId().equals(senderId)) {
+                    throw new IllegalStateException("You can only edit your own messages.");
+                }
 
-            msg.setContent(newContent);
-            msg.setEditedAt(LocalDateTime.now());
-            return chatMessageRepository.save(msg);
-        })
-        .orElseThrow(() -> {
-            logger.warn("Message not found with ID: {}", messageId);
-            return new IllegalArgumentException("Message not found.");
-        });
-}
+               
+                Optional<ChatMessage> latestMsgOpt =
+                    chatMessageRepository.findTopBySenderIdOrderByTimestampDesc(senderId);
+
+                if (latestMsgOpt.isEmpty() || !latestMsgOpt.get().getId().equals(messageId)) {
+                    throw new IllegalStateException("Only the latest message can be edited.");
+                }
+
+                LocalDateTime now = LocalDateTime.now();
+                if (msg.getTimestamp() != null && msg.getTimestamp().plusMinutes(5).isBefore(now)) {
+                    throw new IllegalStateException("You can only edit within 5 minutes of sending.");
+                }
+
+              
+                msg.setContent(newContent);
+                msg.setEdited(true);
+                msg.setEditedAt(now);
+                msg.setStatusinfo("EDITED");
+
+                return chatMessageRepository.save(msg);
+            })
+            .orElseThrow(() -> new IllegalArgumentException("Message not found."));
+    }
+
 
 
 }

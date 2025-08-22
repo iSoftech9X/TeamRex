@@ -16,8 +16,16 @@ public class ChatMessage {
     private LocalDateTime timestamp;
     private LocalDateTime editedAt;
     private boolean deleted = false;
+    private boolean edited = false;   
 
-    private List<String> deliveredTo;
+
+    public boolean isEdited() {
+		return edited;
+	}
+	public void setEdited(boolean edited) {
+		this.edited = edited;
+	}
+	private List<String> deliveredTo;
     private List<String> seenBy;
     private String statusinfo; // SENT, DELIVERED, SEEN
 	

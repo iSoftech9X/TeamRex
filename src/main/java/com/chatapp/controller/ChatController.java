@@ -1,4 +1,5 @@
 package com.chatapp.controller;
+
 import com.chatapp.model.ChatMessage;
 import com.chatapp.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,62 +15,132 @@ import java.util.Optional;
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "*")
 public class ChatController {
-	@Autowired 
-	private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     private ChatService chatService;
 
-    @PostMapping("/send")
-    public ChatMessage sendMessage(@RequestBody ChatMessage message) {
-        return chatService.createMessage(message);
-    }
+    // ========================= REST APIs =========================
+    
+  //@PostMapping("/send")//use only for users dont have websockets
+  //public ChatMessage sendMessage(@RequestBody ChatMessage message) {
+//      return chatService.createMessage(message);
+  //}
+    
 
+    // Fetch chat history between two users
     @GetMapping("/messages")
     public List<ChatMessage> getMessages(@RequestParam String senderId, @RequestParam String receiverId) {
         return chatService.findMessagesBetweenUsers(senderId, receiverId);
     }
 
+    // Mark message as seen
     @PostMapping("/seen/{messageId}")
     public void markAsSeen(@PathVariable String messageId, @RequestParam String userId) {
         chatService.markAsSeen(messageId, userId);
+
+        // Broadcast update over WebSocket
+        chatService.findMessageById(messageId).ifPresent(updatedMessage -> {
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getSenderId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getReceiverId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+        });
     }
 
+    // Mark message as delivered
     @PostMapping("/delivered/{messageId}")
     public void markAsDelivered(@PathVariable String messageId, @RequestParam String userId) {
         chatService.markAsDelivered(messageId, userId);
+
+        chatService.findMessageById(messageId).ifPresent(updatedMessage -> {
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getSenderId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getReceiverId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+        });
     }
 
+    // Edit latest message (with 5 min window)
     @PutMapping("/edit/{messageId}")
-    public ChatMessage editMessage(@PathVariable String messageId, @RequestParam String content) {
-        return chatService.editMessage(messageId, content);
+    public ChatMessage editMessage(@PathVariable String messageId,
+                                   @RequestParam String content,
+                                   @RequestParam String senderId) {
+        ChatMessage updated = chatService.editMessage(messageId, content, senderId);
+
+        // Broadcast edited message
+        messagingTemplate.convertAndSendToUser(
+            updated.getSenderId(),
+            "/queue/message-updates",
+            updated
+        );
+        messagingTemplate.convertAndSendToUser(
+            updated.getReceiverId(),
+            "/queue/message-updates",
+            updated
+        );
+
+        return updated;
     }
 
+    // Soft delete message
     @DeleteMapping("/delete/{messageId}")
     public void softDeleteMessage(@PathVariable String messageId) {
         chatService.softDeleteMessageById(messageId);
+
+        chatService.findMessageById(messageId).ifPresent(updatedMessage -> {
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getSenderId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+            messagingTemplate.convertAndSendToUser(
+                updatedMessage.getReceiverId(),
+                "/queue/message-updates",
+                updatedMessage
+            );
+        });
     }
- 
+
+    // Fetch a single message by id
     @GetMapping("/{messageId}")
     public Optional<ChatMessage> getMessageById(@PathVariable String messageId) {
         return chatService.findMessageById(messageId);
     }
-   
-
 
     // ========================= WebSocket Mapping =========================
     @MessageMapping("/chat.send")
     public void processMessage(@Payload ChatMessage message) {
         ChatMessage savedMessage = chatService.createMessage(message);
-        
-        // Send to the specific receiver using proper user destination format
+
+        // Send to the specific receiver
         messagingTemplate.convertAndSendToUser(
-            message.getReceiverId(),  // userId of the receiver
-            "/queue/messages",        // destination (without /user prefix)
+            message.getReceiverId(),
+            "/queue/messages",
             savedMessage
         );
 
-  
+        // Also confirm to the sender
+        messagingTemplate.convertAndSendToUser(
+            message.getSenderId(),
+            "/queue/messages",
+            savedMessage
+        );
+    }
+}
 
-       
-}}
+
