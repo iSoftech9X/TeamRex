@@ -23,12 +23,6 @@ public class ChatController {
     private ChatService chatService;
 
     // ========================= REST APIs =========================
-    
-  //@PostMapping("/send")//use only for users dont have websockets
-  //public ChatMessage sendMessage(@RequestBody ChatMessage message) {
-//      return chatService.createMessage(message);
-  //}
-    
 
     // Fetch chat history between two users
     @GetMapping("/messages")
@@ -41,7 +35,6 @@ public class ChatController {
     public void markAsSeen(@PathVariable String messageId, @RequestParam String userId) {
         chatService.markAsSeen(messageId, userId);
 
-        // Broadcast update over WebSocket
         chatService.findMessageById(messageId).ifPresent(updatedMessage -> {
             messagingTemplate.convertAndSendToUser(
                 updatedMessage.getSenderId(),
@@ -76,13 +69,12 @@ public class ChatController {
     }
 
     // Edit latest message (with 5 min window)
-    @PutMapping("/edit/{messageId}")
+    @PatchMapping("/edit/{messageId}")
     public ChatMessage editMessage(@PathVariable String messageId,
                                    @RequestParam String content,
                                    @RequestParam String senderId) {
         ChatMessage updated = chatService.editMessage(messageId, content, senderId);
 
-        // Broadcast edited message
         messagingTemplate.convertAndSendToUser(
             updated.getSenderId(),
             "/queue/message-updates",
@@ -97,21 +89,24 @@ public class ChatController {
         return updated;
     }
 
-    // Soft delete message
-    @DeleteMapping("/delete/{messageId}")
-    public void softDeleteMessage(@PathVariable String messageId) {
-        chatService.softDeleteMessageById(messageId);
 
-        chatService.findMessageById(messageId).ifPresent(updatedMessage -> {
+    @DeleteMapping("/delete/{messageId}")
+    public void hardDeleteMessage(@PathVariable String messageId) {
+        Optional<ChatMessage> deletedMsgOpt = chatService.findMessageById(messageId);
+
+        chatService.hardDeleteMessageById(messageId);
+
+    
+        deletedMsgOpt.ifPresent(deletedMessage -> {
             messagingTemplate.convertAndSendToUser(
-                updatedMessage.getSenderId(),
-                "/queue/message-updates",
-                updatedMessage
+                deletedMessage.getSenderId(),
+                "/queue/message-deleted",
+                messageId
             );
             messagingTemplate.convertAndSendToUser(
-                updatedMessage.getReceiverId(),
-                "/queue/message-updates",
-                updatedMessage
+                deletedMessage.getReceiverId(),
+                "/queue/message-deleted",
+                messageId
             );
         });
     }
@@ -142,5 +137,3 @@ public class ChatController {
         );
     }
 }
-
-
