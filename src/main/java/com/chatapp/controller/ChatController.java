@@ -8,7 +8,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -68,48 +70,86 @@ public class ChatController {
         });
     }
 
-    // Edit latest message (with 5 min window)
-    @PatchMapping("/edit/{messageId}")
-    public ChatMessage editMessage(@PathVariable String messageId,
-                                   @RequestParam String content,
-                                   @RequestParam String senderId) {
-        ChatMessage updated = chatService.editMessage(messageId, content, senderId);
-
-        messagingTemplate.convertAndSendToUser(
-            updated.getSenderId(),
-            "/queue/message-updates",
-            updated
-        );
-        messagingTemplate.convertAndSendToUser(
-            updated.getReceiverId(),
-            "/queue/message-updates",
-            updated
-        );
-
-        return updated;
-    }
-
-
-    @DeleteMapping("/delete/{messageId}")
-    public void hardDeleteMessage(@PathVariable String messageId) {
-        Optional<ChatMessage> deletedMsgOpt = chatService.findMessageById(messageId);
-
-        chatService.hardDeleteMessageById(messageId);
-
+//    // Edit latest message (with 5 min window)
+//    @PatchMapping("/edit/{messageId}")
+//    public ChatMessage editMessage(@PathVariable String messageId,
+//                                   @RequestParam String content,
+//                                   @RequestParam String senderId) {
+//        ChatMessage updated = chatService.editMessage(messageId, content, senderId);
+//
+//        messagingTemplate.convertAndSendToUser(
+//            updated.getSenderId(),
+//            "/queue/message-updates",
+//            updated
+//        );
+//        messagingTemplate.convertAndSendToUser(
+//            updated.getReceiverId(),
+//            "/queue/message-updates",
+//            updated
+//        );
+//
+//        return updated;
+//    }
     
-        deletedMsgOpt.ifPresent(deletedMessage -> {
-            messagingTemplate.convertAndSendToUser(
-                deletedMessage.getSenderId(),
-                "/queue/message-deleted",
-                messageId
-            );
-            messagingTemplate.convertAndSendToUser(
-                deletedMessage.getReceiverId(),
-                "/queue/message-deleted",
-                messageId
-            );
-        });
+    @PatchMapping("/edit/{id}")
+    public Map<String, Object> editMessage(
+            @PathVariable String id,
+            @RequestParam String newContent,
+            @RequestParam String senderId,
+            @RequestParam String receiverId) {
+
+        ChatMessage updatedMsg = chatService.editMessage(id, newContent, senderId);
+
+        messagingTemplate.convertAndSendToUser(senderId, "/queue/message-updates", updatedMsg);
+        messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-updates", updatedMsg);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("updatedMessageId", id);
+        response.put("newContent", updatedMsg.getContent());
+        response.put("message", "Message edited successfully");
+        return response;
     }
+
+
+
+//    @DeleteMapping("/delete/{messageId}")
+//    public void hardDeleteMessage(@PathVariable String messageId) {
+//        Optional<ChatMessage> deletedMsgOpt = chatService.findMessageById(messageId);
+//
+//        chatService.hardDeleteMessageById(messageId);
+//
+//    
+//        deletedMsgOpt.ifPresent(deletedMessage -> {
+//            messagingTemplate.convertAndSendToUser(
+//                deletedMessage.getSenderId(),
+//                "/queue/message-deleted",
+//                messageId
+//            );
+//            messagingTemplate.convertAndSendToUser(
+//                deletedMessage.getReceiverId(),
+//                "/queue/message-deleted",
+//                messageId
+//            );
+//        });
+//    }
+   @DeleteMapping("/{id}")
+   public Map<String, Object> deleteMessage(
+           @PathVariable String id,
+           @RequestParam String senderId,
+           @RequestParam String receiverId) {
+
+       chatService.hardDeleteMessageById(id);
+
+       messagingTemplate.convertAndSendToUser(senderId, "/queue/message-deleted", id);
+       messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-deleted", id);
+
+       Map<String, Object> response = new HashMap<>();
+       response.put("status", "success");
+       response.put("deletedMessageId", id);
+       response.put("message", "Message deleted successfully");
+       return response;
+   }
 
     // Fetch a single message by id
     @GetMapping("/{messageId}")
