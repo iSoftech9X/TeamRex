@@ -91,22 +91,22 @@ public class ChatController {
 //        return updated;
 //    }
     
-    @PatchMapping("/edit")
-    public Map<String, Object> editMessage(@RequestBody Map<String, String> request) {
-        String id = request.get("messageId");
+    @PatchMapping("/edit/{messageId}")
+    public Map<String, Object> editMessage(@PathVariable String messageId,
+                                           @RequestBody Map<String, String> request) {
         String newContent = request.get("newContent");
         String senderId = request.get("senderId");
         String receiverId = request.get("receiverId");
 
-        ChatMessage updatedMsg = chatService.editMessage(id, newContent, senderId);
+        ChatMessage updatedMsg = chatService.editMessage(messageId, newContent, senderId);
 
-        // Notify both sender & receiver over WebSocket
+        // Notify both sender & receiver in real-time
         messagingTemplate.convertAndSendToUser(senderId, "/queue/message-updates", updatedMsg);
         messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-updates", updatedMsg);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("updatedMessageId", id);
+        response.put("updatedMessageId", messageId);
         response.put("newContent", updatedMsg.getContent());
         response.put("message", "Message edited successfully");
         return response;
@@ -134,21 +134,21 @@ public class ChatController {
 //            );
 //        });
 //    }
-    @DeleteMapping("/delete")
-    public Map<String, Object> deleteMessage(@RequestBody Map<String, String> request) {
-        String id = request.get("messageId");
+    @DeleteMapping("/delete/{messageId}")
+    public Map<String, Object> deleteMessage(@PathVariable String messageId,
+                                             @RequestBody Map<String, String> request) {
         String senderId = request.get("senderId");
         String receiverId = request.get("receiverId");
 
-        chatService.hardDeleteMessageById(id);
+        chatService.hardDeleteMessageById(messageId);
 
         // Notify both sender & receiver
-        messagingTemplate.convertAndSendToUser(senderId, "/queue/message-deleted", id);
-        messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-deleted", id);
+        messagingTemplate.convertAndSendToUser(senderId, "/queue/message-deleted", messageId);
+        messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-deleted", messageId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("deletedMessageId", id);
+        response.put("deletedMessageId", messageId);
         response.put("message", "Message deleted successfully");
         return response;
     }
