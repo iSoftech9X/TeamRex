@@ -91,15 +91,16 @@ public class ChatController {
 //        return updated;
 //    }
     
-    @PatchMapping("/edit/{id}")
-    public Map<String, Object> editMessage(
-            @PathVariable String id,
-            @RequestParam String newContent,
-            @RequestParam String senderId,
-            @RequestParam String receiverId) {
+    @PatchMapping("/edit")
+    public Map<String, Object> editMessage(@RequestBody Map<String, String> request) {
+        String id = request.get("messageId");
+        String newContent = request.get("newContent");
+        String senderId = request.get("senderId");
+        String receiverId = request.get("receiverId");
 
         ChatMessage updatedMsg = chatService.editMessage(id, newContent, senderId);
 
+        // Notify both sender & receiver over WebSocket
         messagingTemplate.convertAndSendToUser(senderId, "/queue/message-updates", updatedMsg);
         messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-updates", updatedMsg);
 
@@ -133,23 +134,24 @@ public class ChatController {
 //            );
 //        });
 //    }
-   @DeleteMapping("/{id}")
-   public Map<String, Object> deleteMessage(
-           @PathVariable String id,
-           @RequestParam String senderId,
-           @RequestParam String receiverId) {
+    @DeleteMapping("/delete")
+    public Map<String, Object> deleteMessage(@RequestBody Map<String, String> request) {
+        String id = request.get("messageId");
+        String senderId = request.get("senderId");
+        String receiverId = request.get("receiverId");
 
-       chatService.hardDeleteMessageById(id);
+        chatService.hardDeleteMessageById(id);
 
-       messagingTemplate.convertAndSendToUser(senderId, "/queue/message-deleted", id);
-       messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-deleted", id);
+        // Notify both sender & receiver
+        messagingTemplate.convertAndSendToUser(senderId, "/queue/message-deleted", id);
+        messagingTemplate.convertAndSendToUser(receiverId, "/queue/message-deleted", id);
 
-       Map<String, Object> response = new HashMap<>();
-       response.put("status", "success");
-       response.put("deletedMessageId", id);
-       response.put("message", "Message deleted successfully");
-       return response;
-   }
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("deletedMessageId", id);
+        response.put("message", "Message deleted successfully");
+        return response;
+    }
 
     // Fetch a single message by id
     @GetMapping("/{messageId}")
