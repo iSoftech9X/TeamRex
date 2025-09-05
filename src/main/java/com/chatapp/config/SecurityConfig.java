@@ -28,6 +28,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth 
+             .requestMatchers("/api/meetings/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
