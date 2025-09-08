@@ -1,29 +1,99 @@
+// // package com.chatapp.config;
+
+// // import org.springframework.context.annotation.Configuration;
+// // import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+// // import org.springframework.web.socket.config.annotation.*;
+
+// // @Configuration
+// // @EnableWebSocketMessageBroker 
+// // public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+// //     @Override
+// //     public void registerStompEndpoints(StompEndpointRegistry registry) {
+// //         registry.addEndpoint("/ws")
+// //              .setAllowedOrigins("http://localhost:5173")
+      
+// //                 .withSockJS();
+// //     }
+// //     @Override
+// //     public void configureMessageBroker(MessageBrokerRegistry registry) {
+// //         registry.enableSimpleBroker(
+// //             "/topic", // For public channels
+// //             "/queue"  // For private messages
+// //         );
+// //         registry.setApplicationDestinationPrefixes("/app");
+// //         registry.setUserDestinationPrefix("/user");
+// //     }
+// //     }
+// package com.chatapp.config;
+
+// import org.springframework.context.annotation.Configuration;
+// import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+// import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+// import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+// import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+// @Configuration
+// @EnableWebSocketMessageBroker 
+// public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    
+//     @Override
+//     public void registerStompEndpoints(StompEndpointRegistry registry) {
+//         registry.addEndpoint("/ws")
+//              .setAllowedOrigins(
+//                  "http://localhost:5173",    // React dev server
+//                  "http://127.0.0.1:5173",     // Alternative localhost
+//                  "http://localhost:3000",     // Optional: React default port
+//                  "ws://localhost:5173"        // WebSocket protocol
+//              )
+//              .setAllowedOriginPatterns("*")   // For broader compatibility
+//              .withSockJS();                   // Fallback for browsers without WS support
+//     }
+    
+//     @Override
+//     public void configureMessageBroker(MessageBrokerRegistry registry) {
+//         registry.enableSimpleBroker(
+//             "/topic", // For public channels
+//             "/queue"  // For private messages
+//         );
+//         registry.setApplicationDestinationPrefixes("/app");
+//         registry.setUserDestinationPrefix("/user");
+//     }
+// }
+
 package com.chatapp.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
 @EnableWebSocketMessageBroker 
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-             .setAllowedOrigins("http://localhost:5173")
-      
-                .withSockJS();
+             .setAllowedOrigins(
+                 "http://localhost:5173",    // React dev server
+                 "http://127.0.0.1:5173",     // Alternative localhost
+                 "http://localhost:3000",     // Optional: React default port
+                 "ws://localhost:5173"        // WebSocket protocol
+             )
+             .setAllowedOriginPatterns("*")   // For broader compatibility
+             .withSockJS();                   // Fallback for browsers without WS support
     }
+    
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker(
             "/topic", // For public channels
-            "/queue"  // For private messages
+            "/queue",  // For private messages
+            "/user"    // For user-specific messages (important!)
         );
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }
-    }
-
-
+}
  
