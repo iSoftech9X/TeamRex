@@ -1,4 +1,4 @@
-name: Deploy Python App to ECR
+name: Deploy to ECR
 
 on:
   push:
@@ -32,6 +32,6 @@ jobs:
           ECR_REPOSITORY: teamrex-frontend
           IMAGE_TAG: latest
         run: |
-          cd backend
+          cd frontend
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
