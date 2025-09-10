@@ -1,5 +1,7 @@
 // This variable reads the base URL from your .env files
-const API_BASE_URL = "http://localhost:8080";
+// const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://3dcjnnd4rk.eu-central-1.awsapprunner.com";
+
 
 // This is the URL for your RESTful API calls (e.g., http://localhost:8080/api)
 export const REST_API_URL = `${API_BASE_URL}/api`;
