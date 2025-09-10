@@ -1,4 +1,4 @@
-# Use Maven to build the app
+# Use Maven to build the app 
 FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
 COPY . .
