@@ -55,7 +55,6 @@ public class WebConfig implements WebMvcConfigurer {
         
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedOrigin("https://4iwjzbgtmd.eu-central-1.awsapprunner.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(3600L);
