@@ -80,7 +80,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                  "http://127.0.0.1:5173",     // Alternative localhost
                  "http://localhost:3000",     // Optional: React default port
                  "ws://localhost:5173",
-                 "https://4iwjzbgtmd.eu-central-1.awsapprunner.com" 
+                 "ws://4iwjzbgtmd.eu-central-1.awsapprunner.com" 
 
                      // WebSocket protocol
              )
