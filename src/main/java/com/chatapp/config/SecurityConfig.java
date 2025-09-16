@@ -1,3 +1,60 @@
+// // package com.chatapp.config;
+
+// // import org.springframework.beans.factory.annotation.Autowired;
+// // import org.springframework.context.annotation.Bean;
+// // import org.springframework.context.annotation.Configuration;
+// // import org.springframework.security.authentication.AuthenticationManager;
+// // import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+// // import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+// // import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+// // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// // import org.springframework.security.crypto.password.PasswordEncoder;
+// // import org.springframework.security.web.SecurityFilterChain;
+// // import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// // import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+// // @Configuration
+// // @EnableWebSecurity
+// // @EnableMethodSecurity
+// // public class SecurityConfig {
+
+// //     @Autowired 
+// //     private JwtAuthenticationFilter jwtFilter;
+
+// //     @Autowired
+// //     private CustomAuthHandlers customAuthHandlers; 
+
+// //     @Bean
+// //     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+// //         http.csrf(csrf -> csrf.disable())
+// //             .authorizeHttpRequests(auth -> auth 
+// //                 .requestMatchers("/api/auth/**").permitAll()
+// //                 .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
+// //                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+// //                 .requestMatchers("/api/itadmin/**").hasAuthority("IT_ADMIN")
+// //                 .anyRequest().authenticated()
+// //             )
+           
+// //             .exceptionHandling(ex -> ex
+// //                 .authenticationEntryPoint(customAuthHandlers) 
+// //                 .accessDeniedHandler(customAuthHandlers)      
+// //             )
+          
+// //             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+// //         return http.build();
+// //     }
+
+// //     @Bean 
+// //     public PasswordEncoder passwordEncoder() {
+// //         return new BCryptPasswordEncoder();
+// //     }
+
+// //     @Bean
+// //     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+// //         return config.getAuthenticationManager();
+// //     }
+// // }
 // package com.chatapp.config;
 
 // import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +69,11 @@
 // import org.springframework.security.web.SecurityFilterChain;
 // import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 // import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+// import org.springframework.web.cors.CorsConfiguration;
+// import org.springframework.web.cors.CorsConfigurationSource;
+// import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+// import java.util.Arrays;
 
 // @Configuration
 // @EnableWebSecurity
@@ -26,12 +88,16 @@
 
 //     @Bean
 //     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//         http.csrf(csrf -> csrf.disable())
+//         http
+//             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ADD THIS LINE
+//             .csrf(csrf -> csrf.disable())
 //             .authorizeHttpRequests(auth -> auth 
+//              .requestMatchers("/api/meetings/**").permitAll() 
 //                 .requestMatchers("/api/auth/**").permitAll()
 //                 .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
 //                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
 //                 .requestMatchers("/api/itadmin/**").hasAuthority("IT_ADMIN")
+//                 .requestMatchers("/ws/**", "/api/chat/**").permitAll() // ADD CHAT ENDPOINTS
 //                 .anyRequest().authenticated()
 //             )
            
@@ -43,6 +109,21 @@
 //             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
 //         return http.build();
+//     }
+
+//     // ADD THIS CORS CONFIGURATION BEAN
+//     @Bean
+//     public CorsConfigurationSource corsConfigurationSource() {
+//         CorsConfiguration configuration = new CorsConfiguration();
+//         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));    
+//         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+//         configuration.setAllowedHeaders(Arrays.asList("*"));
+//         configuration.setAllowCredentials(true);
+//         configuration.setMaxAge(3600L);
+
+//         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//         source.registerCorsConfiguration("/**", configuration);
+//         return source;
 //     }
 
 //     @Bean 
@@ -89,34 +170,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ADD THIS LINE
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth 
-             .requestMatchers("/api/meetings/**").permitAll() 
+                .requestMatchers("/api/meetings/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/superadmin/**").hasAuthority("SUPER_ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/itadmin/**").hasAuthority("IT_ADMIN")
-                .requestMatchers("/ws/**", "/api/chat/**").permitAll() // ADD CHAT ENDPOINTS
+                .requestMatchers("/ws/**", "/api/chat/**").permitAll() // WebSocket + Chat endpoints
                 .anyRequest().authenticated()
             )
-           
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(customAuthHandlers) 
                 .accessDeniedHandler(customAuthHandlers)      
             )
-          
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ADD THIS CORS CONFIGURATION BEAN
+    // ✅ CORS configuration for both local and deployed frontend
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));    
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://4iwjzbgtmd.eu-central-1.awsapprunner.com" // ✅ deployed frontend
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
