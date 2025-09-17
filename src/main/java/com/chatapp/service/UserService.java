@@ -90,4 +90,9 @@ public class UserService implements UserDetailsService {
     public List<User> searchUsers(String keyword) {
         return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword, keyword);
     }
+    public User getUserProfileById(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+    }
+
 }

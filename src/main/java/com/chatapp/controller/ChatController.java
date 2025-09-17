@@ -244,7 +244,7 @@ public class ChatController {
                 updatedMessage.getReceiverId(),
                 "/queue/message-updates",
                 updatedMessage
-            );
+            ); 
         });
     }
 

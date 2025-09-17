@@ -4,6 +4,7 @@ import com.chatapp.dto.AuthRequest;
 import com.chatapp.dto.AuthResponse;
 import com.chatapp.dto.LoginRequest;
 import com.chatapp.dto.RegisterRequest;
+import com.chatapp.dto.UserProfileResponse;
 import com.chatapp.model.User;
 import com.chatapp.repository.UserRepository;
 import com.chatapp.service.UserService;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class UserController {
 	 @Autowired
 	    private AuthenticationManager authManager;
 
@@ -32,6 +33,29 @@ public class AuthController {
     
 	    @Autowired
        private UserService userService;
+	    
+	    @GetMapping("/{id}/profile")
+	    public ResponseEntity<?> getUserProfile(@PathVariable String id) {
+	        try {
+	            User user = userService.getUserProfileById(id);
+	            UserProfileResponse profile = new UserProfileResponse(
+	                    user.getId(),
+	                    user.getRole(),
+	                    user.getUsername(),
+	                    user.getEmail(),
+	                    user.getStatus(),
+	                    user.getAvatarUrl(),
+	                    user.getTimezone(),
+	                    user.getCreatedAt(),
+	                    user.getCompanyId()
+	            );
+	            return ResponseEntity.ok(profile);
+	        } catch (IllegalArgumentException e) {
+	            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+	        }
+	    }
+
+
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody RegisterRequest request) {
