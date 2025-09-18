@@ -18,12 +18,11 @@ public class MeetingController {
         this.meetingService = meetingService;
     }
 
-    // API for to generate a new meeting link
+    // Create a new meeting
     @PostMapping("/create")
     public ResponseEntity<?> createMeeting(@RequestParam String userId) {
         Meeting meeting = meetingService.createMeeting(userId);
 
-        // Build meeting link
         String meetingLink = "https://yourapp.com/meet/" + meeting.getId();
 
         return ResponseEntity.ok(Map.of(
@@ -32,7 +31,7 @@ public class MeetingController {
         ));
     }
 
-    //  get meeting info
+    // Get meeting info
     @GetMapping("/{id}")
     public ResponseEntity<?> getMeeting(@PathVariable String id) {
         Meeting meeting = meetingService.getMeeting(id);
