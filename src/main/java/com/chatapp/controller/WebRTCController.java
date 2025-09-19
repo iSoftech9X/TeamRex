@@ -22,7 +22,6 @@ public class WebRTCController {
         this.meetingService = meetingService;
     }
 
-    // ===== Join meeting =====
     @MessageMapping("/meeting/{meetingId}/join")
     public void joinMeeting(@DestinationVariable String meetingId, WebRTCSignal signal) {
         Meeting meeting = meetingService.getMeeting(meetingId);
@@ -44,7 +43,6 @@ public class WebRTCController {
         );
     }
 
-    // ===== Leave meeting =====
     @MessageMapping("/meeting/{meetingId}/leave")
     public void leaveMeeting(@DestinationVariable String meetingId, WebRTCSignal signal) {
         Meeting meeting = meetingService.getMeeting(meetingId);
@@ -62,5 +60,41 @@ public class WebRTCController {
                 "/topic/webrtc/meeting/" + meetingId,
                 new ParticipantUpdateDTO("leave", leavingParticipant, participantsWithNames)
         );
+    }
+
+     @MessageMapping("/webrtc/{contextType}/{contextId}")
+    public void handleWebRTCSignaling(
+            @DestinationVariable String contextType,
+            @DestinationVariable String contextId,
+            WebRTCSignal signal
+    ) {
+        System.out.println("WebRTC [" + contextType + "] signal for " + contextId +
+                " from " + signal.getSenderId() + " : " + signal.getType());
+
+        switch (contextType) {
+            case "direct": // 1-to-1 call
+                messagingTemplate.convertAndSend(
+                        "/topic/webrtc/" + contextType + "/" + contextId + "/" + signal.getReceiverId(),
+                        signal
+                );
+                break;
+
+            case "group": // group call (e.g., channel/team)
+                messagingTemplate.convertAndSend(
+                        "/topic/webrtc/" + contextType + "/" + contextId,
+                        signal
+                );
+                break;
+
+            case "meeting": // meeting link
+                messagingTemplate.convertAndSend(
+                        "/topic/webrtc/" + contextType + "/" + contextId,
+                        signal
+                );
+                break;
+
+            default:
+                System.out.println("Unknown context type: " + contextType);
+        }
     }
 }

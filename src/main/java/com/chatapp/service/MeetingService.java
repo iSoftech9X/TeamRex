@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class MeetingService {
-
+ 
     @Autowired
     private MeetingRepository meetingRepository;
 
