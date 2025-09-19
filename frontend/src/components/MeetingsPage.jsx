@@ -1369,7 +1369,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { useAuth } from "../contexts/AuthContext";
 
-const BACKEND = "http://localhost:8080";
+const BACKEND = "https://3dcjnnd4rk.eu-central-1.awsapprunner.com";
 const API_CREATE = `${BACKEND}/api/meetings/create`;
 const WS_ENDPOINT = `${BACKEND}/ws`;
 const ICE_CONFIG = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
@@ -1595,7 +1595,7 @@ export default function Meetings() {
   // -------------------- UI --------------------
   return (
     <div style={{ padding: 20 }}>
-      <h2>Meetings</h2>
+      <h2> TeamRex Meetings</h2>
       <div>User: {userName}</div>
       <button onClick={handleCreateMeeting}>Create Meeting</button>
       {meetingLink && <span> Link: {meetingLink}</span>}
